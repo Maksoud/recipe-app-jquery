@@ -213,11 +213,11 @@ header button {
 .popup {
     background-color: #fff;
     border-radius: 5px;
-    padding: 0 2rem;
+    padding: 1.5rem;
     position: relative;
     overflow: auto;
-    max-width: 600px;
-    max-height: 100vh;
+    max-width: 550px;
+    max-height: 95vh;
     width: 100%;
 }
 

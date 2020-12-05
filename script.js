@@ -372,7 +372,13 @@ function addMealFav(mealData) {
     
     // Show details of the favourite meal
     $(GLOBAL.favMealContent).click( () => {
+        
+        // Get meal in main list
+        //getRandomMeal(mealData.strMeal);
+        
+        // Show meal preparation details in the modal
         showMealInfo(mealData);
+        
     });
     
     //******************//
