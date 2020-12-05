@@ -11,6 +11,7 @@ const favContainer  = null;
 const favMealContent= null;
 const favClearBtn   = null;
 const popupCloseBtn = null;
+const mealShareBtn  = null;
 
 $(document).ready(function() {
     
@@ -99,19 +100,73 @@ $(document).ready(function() {
     </div>
     */
     
-    getRandomMeal();
+    // Find meal id in URL parameters
+    let term = getUrlParam('term');
+    
+    // Get a URL meal or a random meal
+    getRandomMeal(term);
+    
+    // Fetch favourite meals
     fetchFavMeals();
     
 });
 
-async function getRandomMeal() {
+function getUrlVars() {
+    
+    let vars  = {};
+    let parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
+        vars[key] = value;
+    });
+    
+    return vars;
+    
+}// getUrlVars()
+
+function getUrlParam(parameter) {
+    
+    let urlParameter = null;
+    
+    //******************//
+    
+    if (window.location.href.indexOf(parameter) > -1) {
+        urlParameter = getUrlVars()[parameter];
+    }// if (window.location.href.indexOf(parameter) > -1)
+    
+    //******************//
+    
+    return (urlParameter) ? urlParameter : null;
+    
+}// getUrlParam(parameter)
+
+async function getRandomMeal(term = null) {
+    
+    // IF defined a term to search, find it, otherwise get a random meal
+    if (term) {
+        
+        const meals = await getMealsBySearch(term);
+        
+        if (meals) {
+            meals.forEach((meal) => {
+                addMeal(meal);
+            })
+        }// if (meals)
+        
+        return;
+        
+    }// if (term)
+    
+    //******************//
 
     // Clean the container
     $(GLOBAL.mealsEl).html("");
+    
+    //******************//
 
     const resp       = await fetch('https://www.themealdb.com/api/json/v1/1/random.php');
     const respData   = await resp.json();
     const randomMeal = respData.meals[0];
+    
+    //******************//
     
     addMeal(randomMeal, true);
     
@@ -141,7 +196,7 @@ async function getMealsBySearch(term) {
     //Clean the container
     $(GLOBAL.mealsEl).html("");
 
-    const resp      = await fetch('https://www.themealdb.com/api/json/v1/1/search.php?s=' + term);
+    const resp      = await fetch('https://www.themealdb.com/api/json/v1/1/search.php?s=' + decodeURI(term).toLowerCase());
     const respData  = await resp.json();
     const meals     = respData.meals;
     
@@ -151,7 +206,29 @@ async function getMealsBySearch(term) {
 
 function addMeal(mealData, random = false) {
     
-    // Creating buttton structure
+    // Creating the share button structure
+    GLOBAL.mealShareBtn = $('<button title="Copiar Link"><i class="fas fa-share-alt"></i></button>').addClass('meal-share-btn').attr('id', mealData.idMeal);
+    
+    $(GLOBAL.mealShareBtn).click((event) => {
+        
+        // Get current URL + idMeal
+        let shareURL = $(location).attr('origin') + $(location).attr('pathname') + '?term=' + encodeURI(mealData.strMeal).toLowerCase();
+        
+        //console.log(shareURL);
+        
+        // Copy URL to clipboard
+        let copyShareURL = $('<input>').val(shareURL).appendTo('body').select();//.setSelectionRange(0, 99999); // Used in mobile devices
+        document.execCommand('copy');
+        copyShareURL.remove();
+        
+        alert('Link copiado para área de transferência!');
+        
+    });
+    
+    //******************//
+    // Favourite Button
+    
+    // Creating the like buttton structure
     GLOBAL.mealFavBtn = $('<button><i class="fas fa-heart"></i></button>').addClass('meal-fav-btn').attr('id', mealData.idMeal);
     
     // Like button
@@ -207,8 +284,11 @@ function addMeal(mealData, random = false) {
         showMealInfo(mealData);
     });
     
+    //******************//
+    
     //Insert content and button to HTML element
     $(GLOBAL.mealsEl).append($(GLOBAL.mealContent),
+                             $(GLOBAL.mealShareBtn),
                              $(GLOBAL.mealFavBtn)
                             );
     
@@ -274,19 +354,28 @@ function addMealFav(mealData) {
     GLOBAL.favClearBtn    = $('<div>').append(
                                              $('<button><i class="fas fa-window-close"></i></button>').addClass('clear')
                                             );
+    
+    //******************//
+    
     GLOBAL.favMealContent = $('<div>').addClass('fav-meal-body').append(
                                                                         `<img src="${mealData.strMealThumb}" alt="${mealData.strMeal}" />`,
                                                                         `<span>${mealData.strMeal}</span>`
                                                                        );
+    
+    //******************//
                                                                        
     const favMeal = $('<li>').append($(GLOBAL.favMealContent),
                                      $(GLOBAL.favClearBtn)
                                     );
     
+    //******************//
+    
     // Show details of the favourite meal
     $(GLOBAL.favMealContent).click( () => {
         showMealInfo(mealData);
     });
+    
+    //******************//
     
     // Remove favourite item
     $(GLOBAL.favClearBtn).click( () => {
@@ -298,6 +387,8 @@ function addMealFav(mealData) {
         fetchFavMeals();
         
     });
+    
+    //******************//
     
     //Add to favourite container
     $(GLOBAL.favContainer).append(

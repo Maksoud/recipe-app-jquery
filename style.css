@@ -48,7 +48,7 @@ header button {
     border: none;
     color: #aaa;
     font-size: 1.5rem;
-    margin: 0 15px;
+    margin: 0 12px;
 }
 
 .fav-container {
@@ -148,6 +148,7 @@ header button {
     align-items: center;
     justify-content: space-between;
     padding: 1rem;
+    width: 280px;
 }
 
 .meal-body h4 {
@@ -172,6 +173,23 @@ header button {
 }
 
 .meal-fav-btn:focus {
+    outline: none;
+}
+
+.meal-share-btn {
+    display: flex;
+    position: relative;
+    margin-top: -64px;
+    float: right;
+    margin-right: 85px;
+    border: none;
+    background-color: transparent;
+    color: rgb(197, 188, 188);
+    cursor: pointer;
+    font-size: 1.2rem;
+}
+
+.meal-share-btn:focus {
     outline: none;
 }
 
