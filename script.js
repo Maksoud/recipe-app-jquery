@@ -1,17 +1,19 @@
 let GLOBAL = {};
 
-const searchTerm    = null;
-const searchBtn     = null;
-const mealsEl       = null;
-const mealPopup     = null;
-const mealInfoEl    = null;
-const mealContent   = null;
-const mealFavBtn    = null;
-const favContainer  = null;
-const favMealContent= null;
-const favClearBtn   = null;
-const popupCloseBtn = null;
-const mealShareBtn  = null;
+const searchTerm        = null;
+const searchBtn         = null;
+const mealsEl           = null;
+const mealPopup         = null;
+const mealInfoEl        = null;
+const mealContent       = null;
+const mealFavBtn        = null;
+const favContainer      = null;
+const favMealContent    = null;
+const favClearBtn       = null;
+const popupCloseBtn     = null;
+const mealShareBtn      = null;
+const mealInfoFavBtn    = null;
+const mealInfoShareBtn  = null;
 
 $(document).ready(function() {
     
@@ -206,8 +208,8 @@ async function getMealsBySearch(term) {
 
 function addMeal(mealData, random = false) {
     
-    // Creating the share button structure
-    GLOBAL.mealShareBtn = $('<button title="Copiar Link"><i class="fas fa-share-alt"></i></button>').addClass('meal-share-btn').attr('id', mealData.idMeal);
+    // Share button
+    GLOBAL.mealShareBtn = $('<button title="Compartilhar Receita"><i class="fas fa-share-alt"></i></button>').addClass('meal-share-btn').attr('id', mealData.idMeal);
     
     $(GLOBAL.mealShareBtn).click((event) => {
         
@@ -217,7 +219,7 @@ function addMeal(mealData, random = false) {
         //console.log(shareURL);
         
         // Copy URL to clipboard
-        let copyShareURL = $('<input>').val(shareURL).appendTo('body').select();//.setSelectionRange(0, 99999); // Used in mobile devices
+        let copyShareURL = $('<input>').val(shareURL).appendTo('body').select();
         document.execCommand('copy');
         copyShareURL.remove();
         
@@ -226,12 +228,10 @@ function addMeal(mealData, random = false) {
     });
     
     //******************//
-    // Favourite Button
     
-    // Creating the like buttton structure
-    GLOBAL.mealFavBtn = $('<button><i class="fas fa-heart"></i></button>').addClass('meal-fav-btn').attr('id', mealData.idMeal);
+    // Like Button
+    GLOBAL.mealFavBtn = $('<button title="Adicionar ao favorito"><i class="fas fa-heart"></i></button>').addClass('meal-fav-btn').attr('id', mealData.idMeal);
     
-    // Like button
     $(GLOBAL.mealFavBtn).click((event) => {
         
         //Control like button appearance and behavior
@@ -253,8 +253,8 @@ function addMeal(mealData, random = false) {
     });
     
     //******************//
-    // Active like button if the item is in favourite list
     
+    // Active like button if the item is in favourite list
     const mealIds = getMealsLS();
     let found     = false;
     
@@ -286,7 +286,7 @@ function addMeal(mealData, random = false) {
     
     //******************//
     
-    //Insert content and button to HTML element
+    // Insert content and button to HTML element
     $(GLOBAL.mealsEl).append($(GLOBAL.mealContent),
                              $(GLOBAL.mealShareBtn),
                              $(GLOBAL.mealFavBtn)
@@ -294,7 +294,7 @@ function addMeal(mealData, random = false) {
     
 }
 
-//Add meals to Local Storage
+// Add meals to Local Storage
 function addMealLS(mealId) {
     
     const mealIds = getMealsLS();
@@ -309,7 +309,7 @@ function addMealLS(mealId) {
     
 }
 
-//Remove meals from Local Storage
+// Remove meals from Local Storage
 function removeMealLS(mealId) {
     
     const mealIds = getMealsLS();
@@ -318,7 +318,7 @@ function removeMealLS(mealId) {
     
 }
 
-//Get meals from Local Storage
+// Get meals from Local Storage
 function getMealsLS() {
     
     const mealIds = JSON.parse(localStorage.getItem('mealIds'));
@@ -329,7 +329,7 @@ function getMealsLS() {
 
 async function fetchFavMeals() {
             
-    //Clean favourite meals container first
+    // Clean favourite meals container first
     $(GLOBAL.favContainer).html("");
     
     const mealIds = getMealsLS();
@@ -351,19 +351,22 @@ async function fetchFavMeals() {
 
 function addMealFav(mealData) {
     
+    // Button: Remove item from favourite items
     GLOBAL.favClearBtn    = $('<div>').append(
                                              $('<button><i class="fas fa-window-close"></i></button>').addClass('clear')
                                             );
     
     //******************//
     
+    // Favourite meal content
     GLOBAL.favMealContent = $('<div>').addClass('fav-meal-body').append(
                                                                         `<img src="${mealData.strMealThumb}" alt="${mealData.strMeal}" />`,
                                                                         `<span>${mealData.strMeal}</span>`
                                                                        );
     
     //******************//
-                                                                       
+    
+    // Favourite meal structure                                                                
     const favMeal = $('<li>').append($(GLOBAL.favMealContent),
                                      $(GLOBAL.favClearBtn)
                                     );
@@ -386,17 +389,17 @@ function addMealFav(mealData) {
     // Remove favourite item
     $(GLOBAL.favClearBtn).click( () => {
         
-        //Remove ID from array in local storage
+        // Remove ID from array in local storage
         removeMealLS(mealData.idMeal);
         
-        //List favourite meals
+        // List favourite meals
         fetchFavMeals();
         
     });
     
     //******************//
     
-    //Add to favourite container
+    // Add to favourite container
     $(GLOBAL.favContainer).append(
         favMeal
     );
@@ -405,27 +408,100 @@ function addMealFav(mealData) {
 
 function showMealInfo(mealData) {
     
-    //Clean it up
+    // Clean it up
     $(GLOBAL.mealInfoEl).html("");
     
-    // update the meal info
-    const mealEl = $('<div>');
+    //******************//
     
     const ingredients = [];
     
-    //get meal ingredients or measures
+    //******************//
+    
+    // Get meal ingredients or measures
     for (let i = 1; i <= 20; i++) {
         
         if (mealData["strIngredient" + i]) {
             ingredients.push(`${mealData["strIngredient" + i]} - ${mealData["strMeasure" + i]}`);
         } else {
             break;
-        }
+        }// else if (mealData["strIngredient" + i])
         
     }//for (let i=0; i<20; i++)
     
-    mealEl.html(`
+    //******************//
+    
+    // Share button
+    GLOBAL.mealInfoShareBtn = $('<button title="Compartilhar Receita"><i class="fas fa-share-alt"></i></button>').addClass('meal-share-btn').attr('id', mealData.idMeal);
+    
+    $(GLOBAL.mealInfoShareBtn).click((event) => {
+        
+        // Get current URL + idMeal
+        let shareURL = $(location).attr('origin') + $(location).attr('pathname') + '?term=' + encodeURI(mealData.strMeal).toLowerCase();
+        
+        //console.log(shareURL);
+        
+        // Copy URL to clipboard
+        let copyShareURL = $('<input>').val(shareURL).appendTo('body').select();
+        document.execCommand('copy');
+        copyShareURL.remove();
+        
+        alert('Link copiado para área de transferência!');
+        
+    });
+    
+    //******************//
+    
+    // Like button 
+    GLOBAL.mealInfoFavBtn = $('<button title="Adicionar ao favorito"><i class="fas fa-heart"></i></button>').addClass('meal-fav-btn').attr('id', mealData.idMeal);
+    
+    $(GLOBAL.mealInfoFavBtn).click((event) => {
+        
+        // Control like button appearance and behavior
+        if ($(event.currentTarget).hasClass('active')) {
+            
+            removeMealLS(mealData.idMeal);
+            $(event.currentTarget).removeClass('active');
+            
+            // If it's open the same meal, update its like button status too
+            if ($(GLOBAL.mealInfoFavBtn).attr('id') == $(GLOBAL.mealFavBtn).attr('id')) {
+                $(GLOBAL.mealFavBtn).removeClass('active');
+            }// if ($(GLOBAL.mealInfoFavBtn).attr('id') == $(GLOBAL.mealFavBtn).attr('id'))
+            
+        } else {
+            
+            addMealLS(mealData.idMeal);
+            $(event.currentTarget).addClass('active');
+            
+            // If it's open the same meal, update its like button status too
+            if ($(GLOBAL.mealInfoFavBtn).attr('id') == $(GLOBAL.mealFavBtn).attr('id')) {
+                $(GLOBAL.mealFavBtn).addClass('active');
+            }// if ($(GLOBAL.mealInfoFavBtn).attr('id') == $(GLOBAL.mealFavBtn).attr('id'))
+            
+        }// else if ($(this).hasClass('active'))
+        
+        // List favourite meals
+        fetchFavMeals();
+    
+    });
+    
+    //******************//
+    
+    // Active like button if the item is in favourite list
+    const mealIds = getMealsLS();
+    let found     = false;
+    
+    mealIds.forEach((meal) => {
+        if (meal == mealData.idMeal) found = true; 
+    });
+    
+    if (found) $(GLOBAL.mealInfoFavBtn).addClass('active');
+    
+    //******************//
+    
+    // Create the structure
+    $(GLOBAL.mealInfoEl).append(`
         <h1>${mealData.strMeal}</h1>
+        <div class="action-buttons"></div>
     	<img src="${mealData.strMealThumb}" alt="${mealData.strMeal}">
     	<p>
         	${mealData.strInstructions}
@@ -436,9 +512,17 @@ function showMealInfo(mealData) {
     	</ul>
     `);
     
-    $(GLOBAL.mealInfoEl).append(mealEl);
+    //******************//
     
-    //show the popup
+    // Add like and share buttons to structure
+    $(GLOBAL.mealInfoEl).find('.action-buttons').append(
+        $(GLOBAL.mealInfoShareBtn),
+        $(GLOBAL.mealInfoFavBtn)
+    );
+    
+    //******************//
+    
+    // Show the popup modal
     $(GLOBAL.mealPopup).removeClass('hidden');
     
 }

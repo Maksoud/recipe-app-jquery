@@ -51,6 +51,10 @@ header button {
     margin: 0 12px;
 }
 
+header button:focus {
+    outline: none;
+}
+
 .fav-container {
     background-color: rgb(243, 225, 255);
     padding: 0.25rem 1rem;
@@ -229,6 +233,20 @@ header button {
     position: absolute;
     top: 1rem;
     right: 1rem;
+}
+
+.meal-info .action-buttons {
+    float: right;
+    margin-top: -15px;
+    margin-bottom: 10px;
+}
+
+.meal-info .action-buttons button {
+    display: initial;
+    position: unset;
+    float: none;
+    margin-top: 0;
+    margin-right: 0; 
 }
 
 .meal-info h1 {
