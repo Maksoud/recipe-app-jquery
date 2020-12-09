@@ -1,5 +1,6 @@
 let GLOBAL = {};
 
+const gTranslate        = null;
 const searchTerm        = null;
 const searchBtn         = null;
 const mealsEl           = null;
@@ -17,27 +18,50 @@ const mealInfoShareBtn  = null;
 
 $(document).ready(function() {
     
+    GLOBAL.gTranslate       = $('<div>').attr('id', 'gtranslate').append(`
+                                <!-- GTranslate: https://gtranslate.io/ -->
+                                <a href="#" onclick="doGTranslate('pt|en');return false;" title="English" class="gflag nturl" style="background-position:-0px -0px;">
+                                    <img src="//gtranslate.net/flags/blank.png" height="16" width="16" alt="English" />
+                                </a>
+                                <a href="#" onclick="doGTranslate('pt|fr');return false;" title="French" class="gflag nturl" style="background-position:-200px -100px;">
+                                    <img src="//gtranslate.net/flags/blank.png" height="16" width="16" alt="French" />
+                                </a>
+                                <a href="#" onclick="doGTranslate('pt|de');return false;" title="German" class="gflag nturl" style="background-position:-300px -100px;">
+                                    <img src="//gtranslate.net/flags/blank.png" height="16" width="16" alt="German" />
+                                </a>
+                                <a href="#" onclick="doGTranslate('pt|it');return false;" title="Italian" class="gflag nturl" style="background-position:-600px -100px;">
+                                    <img src="//gtranslate.net/flags/blank.png" height="16" width="16" alt="Italian" />
+                                </a>
+                                <a href="#" onclick="doGTranslate('pt|pt');return false;" title="Portuguese" class="gflag nturl" style="background-position:-300px -200px;">
+                                    <img src="//gtranslate.net/flags/blank.png" height="16" width="16" alt="Portuguese" />
+                                </a>
+                                <a href="#" onclick="doGTranslate('pt|es');return false;" title="Spanish" class="gflag nturl" style="background-position:-600px -200px;">
+                                    <img src="//gtranslate.net/flags/blank.png" height="16" width="16" alt="Spanish" />
+                                </a>
+                                <div id="google_translate_element2"></div>
+                            `);
+    
     GLOBAL.container        = $('<div>').addClass('mobile-container');
-    GLOBAL.searchTerm       = $('<input type="text" placeholder="Pesquisar...">').keypress(async (event) => {
-                                                                                                             if (event.which == 13) {
-                                                                                                                const search = $(GLOBAL.searchTerm).val();
-                                                                                                                const meals  = await getMealsBySearch(search);
-                                                                                                                if (meals) {
-                                                                                                                    meals.forEach((meal) => {
-                                                                                                                        addMeal(meal);
-                                                                                                                    })
-                                                                                                                }// if (meals) 
-                                                                                                             }// if (event.which == 13)
-                                                                                                            });
-    GLOBAL.searchBtn        = $('<button title="Pesquisar"><i class="fas fa-search"></i></button>').click(async () => {
-                                                                                                                        const search = $(GLOBAL.searchTerm).val();
-                                                                                                                        const meals  = await getMealsBySearch(search);
-                                                                                                                        if (meals) {
-                                                                                                                            meals.forEach((meal) => {
-                                                                                                                                addMeal(meal);
-                                                                                                                            })
-                                                                                                                        }// if (meals)        
-                                                                                                                      });
+    GLOBAL.searchTerm       = $('<input type="text" placeholder="Search...">').keypress(async (event) => {
+                                                                                                         if (event.which == 13) {
+                                                                                                            const search = $(GLOBAL.searchTerm).val();
+                                                                                                            const meals  = await getMealsBySearch(search);
+                                                                                                            if (meals) {
+                                                                                                                meals.forEach((meal) => {
+                                                                                                                    addMeal(meal);
+                                                                                                                })
+                                                                                                            }// if (meals) 
+                                                                                                         }// if (event.which == 13)
+                                                                                                        });
+    GLOBAL.searchBtn        = $('<button title="Search"><i class="fas fa-search"></i></button>').click(async () => {
+                                                                                                                    const search = $(GLOBAL.searchTerm).val();
+                                                                                                                    const meals  = await getMealsBySearch(search);
+                                                                                                                    if (meals) {
+                                                                                                                        meals.forEach((meal) => {
+                                                                                                                            addMeal(meal);
+                                                                                                                        })
+                                                                                                                    }// if (meals)        
+                                                                                                                  });
     GLOBAL.favContainer     = $('<ul>').addClass('fav-meals');
     GLOBAL.mealsEl          = $('<div>').addClass('meals');
     GLOBAL.mealPopup        = $('<div>').addClass('popup-container hidden');
@@ -47,17 +71,18 @@ $(document).ready(function() {
                                                                                                                       });
     
     $('body').html('').append(
+        $(GLOBAL.gTranslate),
         $(GLOBAL.container).append(
             $('<header>').append(
-                $('<button title="Carregar novos dados"><i class="fas fa-redo-alt"></i></button>').click( () => {
-                                                                                                                 getRandomMeal();
-                                                                                                                 $(GLOBAL.searchTerm).val("")
-                                                                                                                }),
+                $('<button title="Load new random meal"><i class="fas fa-redo-alt"></i></button>').click( () => {
+                                                                                                         getRandomMeal();
+                                                                                                         $(GLOBAL.searchTerm).val("")
+                                                                                                        }),
                 $(GLOBAL.searchTerm),
                 $(GLOBAL.searchBtn)
             ),// header
             $('<div>').addClass('fav-container').append(
-                $('<h3>').text("Refeições Favoritas"),
+                $('<h3>').text("Favorite Meals"),
                 $('<div>').addClass('fav-cont-list').append(
                     $(GLOBAL.favContainer)
                 )
@@ -168,6 +193,9 @@ async function getRandomMeal(term = null) {
     const respData   = await resp.json();
     const randomMeal = respData.meals[0];
     
+    //console.log(randomMeal.strMeal);
+    //console.log(randomMeal.strInstructions);
+    
     //******************//
     
     addMeal(randomMeal, true);
@@ -209,7 +237,7 @@ async function getMealsBySearch(term) {
 function addMeal(mealData, random = false) {
     
     // Share button
-    GLOBAL.mealShareBtn = $('<button title="Compartilhar Receita"><i class="fas fa-share-alt"></i></button>').addClass('meal-share-btn').attr('id', mealData.idMeal);
+    GLOBAL.mealShareBtn = $('<button title="Share"><i class="fas fa-share-alt"></i></button>').addClass('meal-share-btn').attr('id', mealData.idMeal);
     
     $(GLOBAL.mealShareBtn).click((event) => {
         
@@ -223,14 +251,14 @@ function addMeal(mealData, random = false) {
         document.execCommand('copy');
         copyShareURL.remove();
         
-        alert('Link copiado para área de transferência!');
+        alert('Link copied to the clipboard!');
         
     });
     
     //******************//
     
     // Like Button
-    GLOBAL.mealFavBtn = $('<button title="Adicionar ao favorito"><i class="fas fa-heart"></i></button>').addClass('meal-fav-btn').attr('id', mealData.idMeal);
+    GLOBAL.mealFavBtn = $('<button title="Add to favorites"><i class="fas fa-heart"></i></button>').addClass('meal-fav-btn').attr('id', mealData.idMeal);
     
     $(GLOBAL.mealFavBtn).click((event) => {
         
@@ -431,7 +459,7 @@ function showMealInfo(mealData) {
     //******************//
     
     // Share button
-    GLOBAL.mealInfoShareBtn = $('<button title="Compartilhar Receita"><i class="fas fa-share-alt"></i></button>').addClass('meal-share-btn').attr('id', mealData.idMeal);
+    GLOBAL.mealInfoShareBtn = $('<button title="Share"><i class="fas fa-share-alt"></i></button>').addClass('meal-share-btn').attr('id', mealData.idMeal);
     
     $(GLOBAL.mealInfoShareBtn).click((event) => {
         
@@ -445,14 +473,14 @@ function showMealInfo(mealData) {
         document.execCommand('copy');
         copyShareURL.remove();
         
-        alert('Link copiado para área de transferência!');
+        alert('Link copied to the clipboard!');
         
     });
     
     //******************//
     
     // Like button 
-    GLOBAL.mealInfoFavBtn = $('<button title="Adicionar ao favorito"><i class="fas fa-heart"></i></button>').addClass('meal-fav-btn').attr('id', mealData.idMeal);
+    GLOBAL.mealInfoFavBtn = $('<button title="Add to favorites"><i class="fas fa-heart"></i></button>').addClass('meal-fav-btn').attr('id', mealData.idMeal);
     
     $(GLOBAL.mealInfoFavBtn).click((event) => {
         

@@ -20,12 +20,27 @@ img {
     max-width: 100%;
 }
 
+#gtranslate {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    margin: 7px 0;
+    position: absolute;
+    top: 0;
+    padding: 4px;
+}
+
+#gtranslate a {
+    margin: 0 25px;
+}
+
 .mobile-container {
     background-color: #fff;
     box-shadow: 0 0 10px 2px #3333331a;
     border-radius: 3px;
     overflow: hidden;
     width: 400px;
+    margin-top: 25px;
 }
 
 header {
