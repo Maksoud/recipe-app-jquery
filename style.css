@@ -35,6 +35,7 @@ img {
     padding: 8px;
     overflow: hidden;
     width: 400px;
+    max-width: 100%;
 }
 
 #gtranslate a {
@@ -47,8 +48,10 @@ img {
     border-radius: 3px;
     overflow: hidden;
     width: 400px;
+    max-width: 100%;
     position: relative;
-    margin-top: 40px;
+    margin: 40px 0 1.5rem;
+    align-self: flex-start;
 }
 
 header {
@@ -64,18 +67,21 @@ header input {
     border-radius: 3px;
     font-family: inherit;
     padding: 0.5rem 1rem;
+    flex: 1;
+    min-width: 0;
 }
 
 header button {
     background-color: transparent;
     border: none;
     color: #aaa;
+    cursor: pointer;
     font-size: 1.5rem;
     margin: 0 12px;
 }
 
-header button:focus {
-    outline: none;
+header button:hover {
+    color: #777;
 }
 
 .fav-container {
@@ -96,6 +102,13 @@ header button:focus {
     justify-content: center;
     list-style-type: none;
     padding: 0;
+}
+
+.fav-meals .fav-empty {
+    cursor: default;
+    color: #777;
+    font-size: 0.9rem;
+    width: auto;
 }
 
 .fav-meals li {
@@ -130,7 +143,8 @@ header button:focus {
     font-size: 1.2rem;
 }
 
-.fav-meals li:hover .clear {
+.fav-meals li:hover .clear,
+.fav-meals li .clear:focus {
     opacity: 1;
 }
 
@@ -174,50 +188,42 @@ header button:focus {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 1rem;
     padding: 1rem;
-    width: 280px;
 }
 
 .meal-body h4 {
     margin: 0;
 }
 
+.meals-message {
+    color: #777;
+    margin: 1.5rem;
+    text-align: center;
+}
+
+.action-buttons {
+    display: flex;
+    flex-shrink: 0;
+    gap: 0.75rem;
+}
+
+.meal-fav-btn,
+.meal-share-btn {
+    border: none;
+    background-color: transparent;
+    color: rgb(197, 188, 188);
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 0.25rem;
+}
+
+.meal-share-btn:hover {
+    color: #888;
+}
+
 .meal-fav-btn.active {
     color: red;
-}
-
-.meal-fav-btn {
-    display: flex;
-    position: relative;
-    margin-top: -64px;
-    float: right;
-    margin-right: 45px;
-    border: none;
-    background-color: transparent;
-    color: rgb(197, 188, 188);
-    cursor: pointer;
-    font-size: 1.2rem;
-}
-
-.meal-fav-btn:focus {
-    outline: none;
-}
-
-.meal-share-btn {
-    display: flex;
-    position: relative;
-    margin-top: -64px;
-    float: right;
-    margin-right: 85px;
-    border: none;
-    background-color: transparent;
-    color: rgb(197, 188, 188);
-    cursor: pointer;
-    font-size: 1.2rem;
-}
-
-.meal-share-btn:focus {
-    outline: none;
 }
 
 .popup-container {
@@ -230,6 +236,9 @@ header button:focus {
     right: 0;
     top: 0;
     bottom: 0;
+    padding: 1rem;
+    transition: opacity 0.2s;
+    z-index: 10;
 }
 
 .popup-container.hidden {
@@ -259,20 +268,38 @@ header button:focus {
 }
 
 .meal-info .action-buttons {
-    float: right;
-    margin-top: -15px;
+    justify-content: flex-end;
     margin-bottom: 10px;
 }
 
-.meal-info .action-buttons button {
-    display: initial;
-    position: unset;
-    float: none;
-    margin-top: 0;
-    margin-right: 0; 
+.meal-info .instructions {
+    white-space: pre-line;
 }
 
 .meal-info h1 {
     text-align: center;
 }
 
+.meal-info h1 {
+    margin-right: 2rem;
+}
+
+.toast {
+    background-color: #333;
+    border-radius: 3px;
+    color: #fff;
+    font-size: 0.9rem;
+    left: 50%;
+    opacity: 0;
+    padding: 0.5rem 1rem;
+    pointer-events: none;
+    position: fixed;
+    bottom: 1.5rem;
+    transform: translateX(-50%);
+    transition: opacity 0.2s;
+    z-index: 20;
+}
+
+.toast.visible {
+    opacity: 1;
+}
