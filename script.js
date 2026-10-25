@@ -1,60 +1,36 @@
 const API_URL     = 'https://www.themealdb.com/api/json/v1/1';
 const STORAGE_KEY = 'mealIds';
 
+// Elementos e estado compartilhados entre as funções
 const GLOBAL = {};
 
 $(document).ready(function() {
 
-    GLOBAL.gTranslate       = $('<div>').attr('id', 'gtranslate').append(`
-                                <!-- GTranslate: https://gtranslate.io/ -->
-                                <a href="#" onclick="doGTranslate('pt|en');return false;" title="English" class="gflag nturl" style="background-position:-0px -0px;">
-                                    <img src="//gtranslate.net/flags/blank.png" height="16" width="16" alt="English" />
-                                </a>
-                                <a href="#" onclick="doGTranslate('pt|fr');return false;" title="French" class="gflag nturl" style="background-position:-200px -100px;">
-                                    <img src="//gtranslate.net/flags/blank.png" height="16" width="16" alt="French" />
-                                </a>
-                                <a href="#" onclick="doGTranslate('pt|de');return false;" title="German" class="gflag nturl" style="background-position:-300px -100px;">
-                                    <img src="//gtranslate.net/flags/blank.png" height="16" width="16" alt="German" />
-                                </a>
-                                <a href="#" onclick="doGTranslate('pt|it');return false;" title="Italian" class="gflag nturl" style="background-position:-600px -100px;">
-                                    <img src="//gtranslate.net/flags/blank.png" height="16" width="16" alt="Italian" />
-                                </a>
-                                <a href="#" onclick="doGTranslate('pt|pt');return false;" title="Portuguese" class="gflag nturl" style="background-position:-300px -200px;">
-                                    <img src="//gtranslate.net/flags/blank.png" height="16" width="16" alt="Portuguese" />
-                                </a>
-                                <a href="#" onclick="doGTranslate('pt|es');return false;" title="Spanish" class="gflag nturl" style="background-position:-600px -200px;">
-                                    <img src="//gtranslate.net/flags/blank.png" height="16" width="16" alt="Spanish" />
-                                </a>
-                                <div id="google_translate_element2"></div>
-                            `);
-
-    GLOBAL.container        = $('<div>').addClass('mobile-container');
-    GLOBAL.searchTerm       = $('<input type="search" placeholder="Search..." aria-label="Search meals">').on('keydown', (event) => {
-                                  if (event.key === 'Enter') searchMeals($(GLOBAL.searchTerm).val());
-                              });
-    GLOBAL.searchBtn        = $('<button title="Search" aria-label="Search"><i class="fas fa-search"></i></button>').on('click', () => {
-                                  searchMeals($(GLOBAL.searchTerm).val());
-                              });
-    GLOBAL.favContainer     = $('<ul>').addClass('fav-meals');
-    GLOBAL.mealsEl          = $('<div>').addClass('meals');
-    GLOBAL.mealPopup        = $('<div>').addClass('popup-container hidden');
-    GLOBAL.mealInfoEl       = $('<div>').addClass('meal-info');
-    GLOBAL.popupCloseBtn    = $('<button title="Close" aria-label="Close"><i class="fas fa-times"></i></button>').addClass('close-popup').on('click', closePopup);
-    GLOBAL.toast            = $('<div>').addClass('toast').attr('role', 'status');
+    GLOBAL.container     = $('<main>').addClass('mobile-container');
+    GLOBAL.searchTerm    = $('<input type="search" placeholder="Pesquisar receitas..." aria-label="Pesquisar receitas">');
+    GLOBAL.favContainer  = $('<ul>').addClass('fav-meals');
+    GLOBAL.mealsEl       = $('<div>').addClass('meals').attr('aria-live', 'polite');
+    GLOBAL.mealPopup     = $('<div>').addClass('popup-container hidden');
+    GLOBAL.mealInfoEl    = $('<div>').addClass('meal-info');
+    GLOBAL.popupCloseBtn = $('<button type="button" title="Fechar" aria-label="Fechar"><i class="fas fa-times"></i></button>').addClass('close-popup').on('click', closePopup);
+    GLOBAL.toast         = $('<div>').addClass('toast').attr('role', 'status');
 
     $('body').empty().append(
-        $(GLOBAL.gTranslate),
         $(GLOBAL.container).append(
-            $('<header>').append(
-                $('<button title="Load new random meal" aria-label="Load new random meal"><i class="fas fa-redo-alt"></i></button>').on('click', () => {
+            // Um <form> faz o Enter e o botão de busca funcionarem do mesmo jeito
+            $('<form>').attr('role', 'search').append(
+                $('<button type="button" title="Nova receita aleatória" aria-label="Nova receita aleatória"><i class="fas fa-redo-alt"></i></button>').on('click', () => {
                     $(GLOBAL.searchTerm).val('');
                     getRandomMeal();
                 }),
                 $(GLOBAL.searchTerm),
-                $(GLOBAL.searchBtn)
-            ),// header
-            $('<div>').addClass('fav-container').append(
-                $('<h3>').text('Favorite Meals'),
+                $('<button type="submit" title="Pesquisar" aria-label="Pesquisar"><i class="fas fa-search"></i></button>')
+            ).on('submit', (event) => {
+                event.preventDefault();
+                searchMeals($(GLOBAL.searchTerm).val());
+            }),// form
+            $('<section>').addClass('fav-container').append(
+                $('<h2>').text('Receitas favoritas'),
                 $('<div>').addClass('fav-cont-list').append(
                     $(GLOBAL.favContainer)
                 )
@@ -62,7 +38,7 @@ $(document).ready(function() {
             $(GLOBAL.mealsEl)
         ),// mobile-container
         $(GLOBAL.mealPopup).append(
-            $('<div>').addClass('popup').append(
+            $('<div>').addClass('popup').attr({ role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'meal-info-title' }).append(
                 $(GLOBAL.popupCloseBtn),
                 $(GLOBAL.mealInfoEl)
             )// popup
@@ -70,7 +46,7 @@ $(document).ready(function() {
         $(GLOBAL.toast)
     );
 
-    // Close the popup by clicking outside it or pressing Esc
+    // Fecha o popup clicando fora dele ou apertando Esc
     $(GLOBAL.mealPopup).on('click', (event) => {
         if (event.target === event.currentTarget) closePopup();
     });
@@ -81,7 +57,7 @@ $(document).ready(function() {
 
     //******************//
 
-    // A shared link (?term=...) opens that meal, otherwise load a random one
+    // Um link compartilhado (?term=...) abre aquela receita; senão, carrega uma aleatória
     const term = new URLSearchParams(window.location.search).get('term');
 
     if (term) {
@@ -91,7 +67,7 @@ $(document).ready(function() {
         getRandomMeal();
     }
 
-    // Fetch favourite meals
+    // Carrega os favoritos salvos
     fetchFavMeals();
 
 });
@@ -104,11 +80,11 @@ async function fetchMeals(path) {
 
     const resp = await fetch(API_URL + path);
 
-    if (!resp.ok) throw new Error(`Request failed: ${resp.status}`);
+    if (!resp.ok) throw new Error(`Falha na requisição: ${resp.status}`);
 
     const respData = await resp.json();
 
-    // The API returns { meals: null } when nothing is found
+    // A API devolve { meals: null } quando não encontra nada
     return respData.meals || [];
 
 }
@@ -121,13 +97,26 @@ async function getMealById(id) {
 
 }
 
+// Cada busca recebe um número; respostas de buscas antigas são ignoradas
+function newMealsRequest() {
+
+    GLOBAL.mealsRequestId = (GLOBAL.mealsRequestId || 0) + 1;
+
+    return GLOBAL.mealsRequestId;
+
+}
+
 async function getRandomMeal() {
 
-    showMessage('Loading...');
+    const requestId = newMealsRequest();
+
+    showMessage('Carregando...');
 
     try {
 
         const meals = await fetchMeals('/random.php');
+
+        if (requestId !== GLOBAL.mealsRequestId) return;
 
         $(GLOBAL.mealsEl).empty();
 
@@ -136,7 +125,7 @@ async function getRandomMeal() {
     } catch (error) {
 
         console.error(error);
-        showMessage('Could not load a meal. Please try again.');
+        if (requestId === GLOBAL.mealsRequestId) showMessage('Não foi possível carregar uma receita. Tente novamente.');
 
     }
 
@@ -146,38 +135,43 @@ async function searchMeals(term) {
 
     term = (term || '').trim();
 
-    // Empty search: show a random meal
+    // Busca vazia: mostra uma receita aleatória
     if (!term) return getRandomMeal();
 
-    showMessage('Searching...');
+    const requestId = newMealsRequest();
+
+    showMessage('Pesquisando...');
 
     try {
 
         const meals = await fetchMeals('/search.php?s=' + encodeURIComponent(term));
 
-        $(GLOBAL.mealsEl).empty();
+        if (requestId !== GLOBAL.mealsRequestId) return;
 
         if (!meals.length) {
-            showMessage(`No meals found for "${term}".`);
+            // .text() mostra o termo como texto, mesmo que tenha HTML
+            showMessage(`Nenhuma receita encontrada para "${term}".`);
             return;
         }
+
+        $(GLOBAL.mealsEl).empty();
 
         meals.forEach((meal) => addMeal(meal));
 
     } catch (error) {
 
         console.error(error);
-        showMessage('Search failed. Please try again.');
+        if (requestId === GLOBAL.mealsRequestId) showMessage('A pesquisa falhou. Tente novamente.');
 
     }
 
 }
 
 //******************//
-// Meals list
+// Lista de receitas
 //******************//
 
-// Show a text message in the meals area (loading, errors, empty results)
+// Mostra uma mensagem na área das receitas (carregando, erros, sem resultados)
 function showMessage(text) {
 
     $(GLOBAL.mealsEl).empty().append(
@@ -190,30 +184,27 @@ function addMeal(mealData, random = false) {
 
     const mealHeader = $('<div>').addClass('meal-header');
 
-    if (random) mealHeader.append($('<span>').addClass('random').text('Random Recipe'));
+    if (random) mealHeader.append($('<span>').addClass('random').text('Receita aleatória'));
 
     mealHeader.append(
-        $('<img>').attr({ src: mealData.strMealThumb, alt: mealData.strMeal, loading: 'lazy' })
+        $('<img>').attr({ src: mealData.strMealThumb, alt: '', loading: 'lazy' })
     );
 
     //******************//
 
-    // Creating meal content structure
-    const mealContent = $('<div>').addClass('meal').append(
+    // O título é um botão para quem navega pelo teclado; o card inteiro também é clicável
+    const mealContent = $('<article>').addClass('meal').append(
         mealHeader,
         $('<div>').addClass('meal-body').append(
-            $('<h4>').text(mealData.strMeal),
+            $('<h3>').append(
+                $('<button type="button">').addClass('meal-title').text(mealData.strMeal)
+            ),
             $('<div>').addClass('action-buttons').append(
                 createShareButton(mealData),
                 createFavButton(mealData)
             )
         )
-    );
-
-    //******************//
-
-    // Show meal details
-    mealContent.on('click', () => showMealInfo(mealData));
+    ).on('click', () => showMealInfo(mealData));
 
     //******************//
 
@@ -222,15 +213,15 @@ function addMeal(mealData, random = false) {
 }
 
 //******************//
-// Buttons
+// Botões
 //******************//
 
 function createShareButton(mealData) {
 
-    return $('<button title="Share" aria-label="Share"><i class="fas fa-share-alt"></i></button>')
+    return $('<button type="button" title="Copiar link" aria-label="Copiar link da receita"><i class="fas fa-share-alt"></i></button>')
         .addClass('meal-share-btn')
         .on('click', (event) => {
-            event.stopPropagation(); // Don't open the popup
+            event.stopPropagation(); // Não abre o popup
             shareMeal(mealData);
         });
 
@@ -238,30 +229,45 @@ function createShareButton(mealData) {
 
 function createFavButton(mealData) {
 
-    return $('<button title="Add to favorites" aria-label="Add to favorites"><i class="fas fa-heart"></i></button>')
+    const button = $('<button type="button"><i class="fas fa-heart"></i></button>')
         .addClass('meal-fav-btn')
         .attr('data-id', mealData.idMeal)
-        .toggleClass('active', isFavorite(mealData.idMeal))
         .on('click', (event) => {
 
-            event.stopPropagation(); // Don't open the popup
+            event.stopPropagation(); // Não abre o popup
 
             if (isFavorite(mealData.idMeal)) {
-                removeMealLS(mealData.idMeal);
+                if (removeMealLS(mealData.idMeal)) showToast('Removida dos favoritos.');
             } else {
-                addMealLS(mealData.idMeal);
+                if (addMealLS(mealData.idMeal)) showToast('Adicionada aos favoritos!');
             }
 
             fetchFavMeals();
 
         });
 
+    setFavButtonState(button, mealData.idMeal);
+
+    return button;
+
 }
 
-// Keep every like button of this meal (card and popup) in sync
+// Atualiza cor, título e aria-pressed de um botão de favorito
+function setFavButtonState(button, mealId) {
+
+    const active = isFavorite(mealId);
+    const label  = active ? 'Remover dos favoritos' : 'Adicionar aos favoritos';
+
+    $(button).toggleClass('active', active).attr({ title: label, 'aria-label': label, 'aria-pressed': active });
+
+}
+
+// Mantém sincronizados todos os botões de favorito dessa receita (card e popup)
 function updateFavButtons(mealId) {
 
-    $(`.meal-fav-btn[data-id="${mealId}"]`).toggleClass('active', isFavorite(mealId));
+    $('.meal-fav-btn')
+        .filter((index, button) => $(button).attr('data-id') === mealId)
+        .each((index, button) => setFavButtonState(button, mealId));
 
 }
 
@@ -274,18 +280,18 @@ async function shareMeal(mealData) {
         if (navigator.clipboard && window.isSecureContext) {
             await navigator.clipboard.writeText(shareURL);
         } else {
-            // Fallback for old browsers / non-HTTPS
+            // Alternativa para navegadores antigos / sem HTTPS
             const copyShareURL = $('<input>').val(shareURL).appendTo('body').select();
             document.execCommand('copy');
             copyShareURL.remove();
         }
 
-        showToast('Link copied to the clipboard!');
+        showToast('Link copiado!');
 
     } catch (error) {
 
         console.error(error);
-        showToast('Could not copy the link.');
+        showToast('Não foi possível copiar o link.');
 
     }
 
@@ -305,7 +311,7 @@ function showToast(text) {
 // Local Storage
 //******************//
 
-// Get meals from Local Storage
+// Lê os ids favoritos salvos no navegador
 function getMealsLS() {
 
     try {
@@ -317,46 +323,59 @@ function getMealsLS() {
 
 }
 
+// Salva a lista de ids; devolve false se o navegador bloquear o localStorage
+function saveMealsLS(mealIds) {
+
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(mealIds));
+        return true;
+    } catch (error) {
+        console.error(error);
+        showToast('Não foi possível salvar os favoritos neste navegador.');
+        return false;
+    }
+
+}
+
 function isFavorite(mealId) {
 
     return getMealsLS().includes(mealId);
 
 }
 
-// Add meals to Local Storage
 function addMealLS(mealId) {
 
     const mealIds = getMealsLS();
-
-    if (!mealIds.includes(mealId)) localStorage.setItem(STORAGE_KEY, JSON.stringify([...mealIds, mealId]));
+    const saved   = mealIds.includes(mealId) || saveMealsLS([...mealIds, mealId]);
 
     updateFavButtons(mealId);
+
+    return saved;
 
 }
 
-// Remove meals from Local Storage
 function removeMealLS(mealId) {
 
-    const mealIds = getMealsLS();
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(mealIds.filter((id) => id !== mealId)));
+    const saved = saveMealsLS(getMealsLS().filter((id) => id !== mealId));
 
     updateFavButtons(mealId);
+
+    return saved;
 
 }
 
 //******************//
-// Favourites
+// Favoritos
 //******************//
 
 async function fetchFavMeals() {
 
-    // Ignore results of older calls that finish after a newer one
+    // Ignora o resultado de chamadas antigas que terminem depois de uma mais nova
     const requestId = (GLOBAL.favRequestId = (GLOBAL.favRequestId || 0) + 1);
 
     const mealIds = getMealsLS();
 
-    // Load all favourites in parallel; skip the ones that fail
+    // Carrega todos os favoritos em paralelo; pula os que falharem
     const meals = await Promise.all(
         mealIds.map((id) => getMealById(id).catch(() => null))
     );
@@ -370,7 +389,7 @@ async function fetchFavMeals() {
     const validMeals = meals.filter(Boolean);
 
     if (!validMeals.length) {
-        $(GLOBAL.favContainer).append($('<li>').addClass('fav-empty').text('No favorites yet. Tap ♥ to add one.'));
+        $(GLOBAL.favContainer).append($('<li>').addClass('fav-empty').text('Nenhum favorito ainda. Toque no ♥ de uma receita para salvar.'));
         return;
     }
 
@@ -380,19 +399,20 @@ async function fetchFavMeals() {
 
 function addMealFav(mealData) {
 
-    // Button: Remove item from favourite items
-    const favClearBtn = $('<button title="Remove from favorites" aria-label="Remove from favorites"><i class="fas fa-window-close"></i></button>')
+    // Botão: remove a receita dos favoritos
+    const favClearBtn = $('<button type="button"><i class="fas fa-times"></i></button>')
         .addClass('clear')
+        .attr({ title: 'Remover dos favoritos', 'aria-label': 'Remover ' + mealData.strMeal + ' dos favoritos' })
         .on('click', () => {
-            removeMealLS(mealData.idMeal);
+            if (removeMealLS(mealData.idMeal)) showToast('Removida dos favoritos.');
             fetchFavMeals();
         });
 
     //******************//
 
-    // Favourite meal content
-    const favMealContent = $('<div>').addClass('fav-meal-body').append(
-        $('<img>').attr({ src: mealData.strMealThumb, alt: mealData.strMeal, loading: 'lazy' }),
+    // Botão: abre os detalhes da receita
+    const favMealContent = $('<button type="button">').addClass('fav-meal-body').attr('title', mealData.strMeal).append(
+        $('<img>').attr({ src: mealData.strMealThumb, alt: '', loading: 'lazy' }),
         $('<span>').text(mealData.strMeal)
     ).on('click', () => showMealInfo(mealData));
 
@@ -412,7 +432,7 @@ function showMealInfo(mealData) {
 
     const ingredients = [];
 
-    // Get meal ingredients and measures
+    // Junta os ingredientes e as medidas (a API tem até 20 de cada)
     for (let i = 1; i <= 20; i++) {
 
         const ingredient = (mealData['strIngredient' + i] || '').trim();
@@ -426,22 +446,26 @@ function showMealInfo(mealData) {
 
     //******************//
 
-    // Create the structure
+    // Monta o conteúdo (sempre com .text() para os dados da API)
     $(GLOBAL.mealInfoEl).empty().append(
-        $('<h1>').text(mealData.strMeal),
+        $('<h2>').attr('id', 'meal-info-title').text(mealData.strMeal),
         $('<div>').addClass('action-buttons').append(
             createShareButton(mealData),
             createFavButton(mealData)
         ),
         $('<img>').attr({ src: mealData.strMealThumb, alt: mealData.strMeal }),
-        $('<p>').addClass('instructions').text(mealData.strInstructions || ''),
-        $('<h3>').text('Ingredients:'),
-        $('<ul>').append(ingredients.map((ing) => $('<li>').text(ing)))
+        $('<h3>').text('Ingredientes'),
+        $('<ul>').append(ingredients.map((ing) => $('<li>').text(ing))),
+        $('<h3>').text('Modo de preparo'),
+        $('<p>').addClass('instructions').text(mealData.strInstructions || '')
     );
 
     //******************//
 
-    // Show the popup modal
+    // Guarda quem estava com o foco para devolvê-lo ao fechar
+    GLOBAL.lastFocus = document.activeElement;
+
+    $('body').addClass('no-scroll');
     $(GLOBAL.mealPopup).removeClass('hidden').find('.popup').scrollTop(0);
     $(GLOBAL.popupCloseBtn).trigger('focus');
 
@@ -449,6 +473,11 @@ function showMealInfo(mealData) {
 
 function closePopup() {
 
+    if ($(GLOBAL.mealPopup).hasClass('hidden')) return;
+
+    $('body').removeClass('no-scroll');
     $(GLOBAL.mealPopup).addClass('hidden');
+
+    if (GLOBAL.lastFocus && document.body.contains(GLOBAL.lastFocus)) GLOBAL.lastFocus.focus();
 
 }

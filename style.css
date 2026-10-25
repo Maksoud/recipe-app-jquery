@@ -1,146 +1,188 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;600&display=swap");
 
+:root {
+    --text: #333;
+    --muted: #6b6b6b;
+    --border-shadow: 0 0 10px 2px #3333331a;
+    --accent: #8a4fc7;
+    --fav-bg: #f3e1ff;
+    --heart: #e0245e;
+}
+
 * {
     box-sizing: border-box;
 }
 
 body {
     font-family: "Poppins", sans-serif;
+    color: var(--text);
     margin: 0;
-    background: #eee;
-    background: -webkit-linear-gradient(to right, #fff, #eee);
     background: linear-gradient(to right, #fff, #eee);
     display: flex;
-    /* align-items: center; */
     justify-content: center;
     min-height: 100vh;
+    padding: 0 1rem;
+}
+
+/* Trava a rolagem da página enquanto o popup está aberto */
+body.no-scroll {
+    overflow: hidden;
 }
 
 img {
     max-width: 100%;
 }
 
-#gtranslate {
-    /*
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: absolute;
-    */
-    display: inline-flex;
-    position: fixed;
-    justify-content: center;
-    margin: 7px 0;
-    top: 0;
-    padding: 8px;
-    overflow: hidden;
-    width: 400px;
-    max-width: 100%;
+button {
+    font-family: inherit;
+    color: inherit;
 }
 
-#gtranslate a {
-    margin: 0 20px;
+/* Contorno visível para quem navega pelo teclado */
+button:focus-visible,
+input:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
 }
 
 .mobile-container {
     background-color: #fff;
-    box-shadow: 0 0 10px 2px #3333331a;
-    border-radius: 3px;
+    box-shadow: var(--border-shadow);
+    border-radius: 6px;
     overflow: hidden;
-    width: 400px;
+    width: 420px;
     max-width: 100%;
-    position: relative;
-    margin: 40px 0 1.5rem;
+    margin: 2rem 0;
     align-self: flex-start;
 }
 
-header {
+/* Barra de busca */
+form[role="search"] {
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 0.5rem;
     padding: 1rem;
 }
 
-header input {
+form[role="search"] input {
     background-color: #eee;
-    border: none;
-    border-radius: 3px;
+    border: 2px solid transparent;
+    border-radius: 6px;
     font-family: inherit;
+    font-size: 1rem;
     padding: 0.5rem 1rem;
     flex: 1;
     min-width: 0;
 }
 
-header button {
+form[role="search"] input:focus {
+    background-color: #fff;
+    border-color: var(--accent);
+    outline: none;
+}
+
+form[role="search"] button {
     background-color: transparent;
     border: none;
-    color: #aaa;
+    border-radius: 6px;
+    color: #999;
     cursor: pointer;
-    font-size: 1.5rem;
-    margin: 0 12px;
+    font-size: 1.4rem;
+    padding: 0.4rem 0.6rem;
 }
 
-header button:hover {
-    color: #777;
+form[role="search"] button:hover {
+    color: #555;
 }
 
+/* Favoritos */
 .fav-container {
-    background-color: rgb(243, 225, 255);
-    padding: 0.25rem 1rem;
+    background-color: var(--fav-bg);
+    padding: 0.25rem 1rem 0.5rem;
     text-align: center;
-    height: 205px;
 }
 
+.fav-container h2 {
+    font-size: 1.1rem;
+    margin: 0.75rem 0 0.25rem;
+}
+
+/* Altura mínima evita que a página "pule" quando os favoritos carregam */
 .fav-cont-list {
-    padding: 0 5px;
-    text-align: center;
-    overflow-x: scroll;
+    overflow-x: auto;
+    min-height: 7rem;
 }
 
 .fav-meals {
     display: inline-flex;
-    justify-content: center;
+    gap: 0.5rem;
     list-style-type: none;
-    padding: 0;
-}
-
-.fav-meals .fav-empty {
-    cursor: default;
-    color: #777;
-    font-size: 0.9rem;
-    width: auto;
+    margin: 0;
+    padding: 0.75rem 0.25rem;
 }
 
 .fav-meals li {
-    cursor: pointer;
     position: relative;
-    margin: 5px;
-    width: 75px;
+    width: 80px;
+    flex-shrink: 0;
 }
 
-.fav-meals li span {
-    display: inline-block;
+.fav-meals .fav-empty {
+    color: var(--muted);
     font-size: 0.9rem;
+    /* A lista é inline-flex: sem largura fixa o texto não quebraria linha */
+    width: 18rem;
+    max-width: 70vw;
+    padding: 1rem 0;
+}
+
+.fav-meal-body {
+    background: none;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    padding: 0;
+    width: 100%;
+}
+
+.fav-meal-body img {
+    border: 2px solid #fff;
+    border-radius: 50%;
+    box-shadow: var(--border-shadow);
+    object-fit: cover;
+    height: 70px;
+    width: 70px;
+    transition: transform 0.15s;
+}
+
+.fav-meal-body:hover img {
+    transform: scale(1.05);
+}
+
+.fav-meal-body span {
+    display: block;
+    font-size: 0.85rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 75px;
 }
 
-.fav-meals li:hover span {
-    white-space: normal;
-    overflow: auto;
-}
-
+/* Botão de remover: aparece com hover/foco; em telas de toque fica sempre visível */
 .fav-meals li .clear {
-    background-color: transparent;
+    background-color: #fff;
     border: none;
+    border-radius: 50%;
+    box-shadow: var(--border-shadow);
+    color: #555;
     cursor: pointer;
+    font-size: 0.8rem;
+    height: 1.6rem;
+    width: 1.6rem;
     opacity: 0;
     position: absolute;
-    top: -0.5rem;
-    right: -0.5rem;
-    font-size: 1.2rem;
+    top: -0.25rem;
+    right: 0;
+    transition: opacity 0.15s;
 }
 
 .fav-meals li:hover .clear,
@@ -148,21 +190,24 @@ header button:hover {
     opacity: 1;
 }
 
-.fav-meals li img {
-    border: 2px solid #ffffff;
-    border-radius: 50%;
-    box-shadow: 0 0 10px 2px #3333331a;
-    object-fit: cover;
-    height: 70px;
-    width: 70px;
+@media (hover: none), (pointer: coarse) {
+    .fav-meals li .clear {
+        opacity: 1;
+    }
 }
 
+/* Cards de receita */
 .meal {
-    border-radius: 3px;
-    box-shadow: 0 0 10px 2px #3333331a;
+    border-radius: 6px;
+    box-shadow: var(--border-shadow);
     cursor: pointer;
     margin: 1.5rem;
     overflow: hidden;
+    transition: box-shadow 0.15s;
+}
+
+.meal:hover {
+    box-shadow: 0 2px 14px 2px #33333333;
 }
 
 .meal-header {
@@ -173,12 +218,14 @@ header button:hover {
     position: absolute;
     top: 1rem;
     background-color: #fff;
-    padding: 0.25rem 0.5rem;
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.75rem;
+    border-top-right-radius: 6px;
+    border-bottom-right-radius: 6px;
 }
 
 .meal-header img {
+    display: block;
     object-fit: cover;
     height: 250px;
     width: 100%;
@@ -192,63 +239,79 @@ header button:hover {
     padding: 1rem;
 }
 
-.meal-body h4 {
+.meal-body h3 {
+    font-size: 1rem;
     margin: 0;
 }
 
+.meal-title {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: inherit;
+    font-weight: 600;
+    padding: 0;
+    text-align: left;
+}
+
 .meals-message {
-    color: #777;
-    margin: 1.5rem;
+    color: var(--muted);
+    margin: 2rem 1.5rem;
     text-align: center;
 }
 
 .action-buttons {
     display: flex;
     flex-shrink: 0;
-    gap: 0.75rem;
+    gap: 0.5rem;
 }
 
 .meal-fav-btn,
 .meal-share-btn {
     border: none;
+    border-radius: 50%;
     background-color: transparent;
-    color: rgb(197, 188, 188);
+    color: #c5bcbc;
     cursor: pointer;
     font-size: 1.2rem;
-    padding: 0.25rem;
+    height: 2.5rem;
+    width: 2.5rem;
 }
 
+.meal-fav-btn:hover,
 .meal-share-btn:hover {
+    background-color: #f2f2f2;
     color: #888;
 }
 
 .meal-fav-btn.active {
-    color: red;
+    color: var(--heart);
 }
 
+/* Popup com os detalhes */
 .popup-container {
     background-color: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
     position: fixed;
-    left: 0;
-    right: 0;
-    top: 0;
-    bottom: 0;
+    inset: 0;
     padding: 1rem;
     transition: opacity 0.2s;
     z-index: 10;
 }
 
+/* visibility esconde também do teclado (Tab não entra no popup fechado).
+   Ao abrir, fica visível na hora (para receber o foco); ao fechar, espera o fade. */
 .popup-container.hidden {
     opacity: 0;
-    pointer-events: none; /* necessary to click through */
+    visibility: hidden;
+    transition: opacity 0.2s, visibility 0s 0.2s;
 }
 
 .popup {
     background-color: #fff;
-    border-radius: 5px;
+    border-radius: 8px;
     padding: 1.5rem;
     position: relative;
     overflow: auto;
@@ -260,33 +323,48 @@ header button:hover {
 .popup .close-popup {
     background-color: transparent;
     border: none;
+    border-radius: 50%;
     cursor: pointer;
     font-size: 1.5rem;
+    height: 2.5rem;
+    width: 2.5rem;
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: 0.75rem;
+    right: 0.75rem;
+}
+
+.popup .close-popup:hover {
+    background-color: #f2f2f2;
+}
+
+.meal-info h2 {
+    margin: 0 2.5rem 0.5rem;
+    text-align: center;
 }
 
 .meal-info .action-buttons {
-    justify-content: flex-end;
-    margin-bottom: 10px;
+    justify-content: center;
+    margin-bottom: 0.75rem;
+}
+
+.meal-info img {
+    border-radius: 6px;
+    display: block;
+}
+
+.meal-info h3 {
+    margin-bottom: 0.25rem;
 }
 
 .meal-info .instructions {
     white-space: pre-line;
+    line-height: 1.6;
 }
 
-.meal-info h1 {
-    text-align: center;
-}
-
-.meal-info h1 {
-    margin-right: 2rem;
-}
-
+/* Aviso rápido no rodapé ("Link copiado!" etc.) */
 .toast {
     background-color: #333;
-    border-radius: 3px;
+    border-radius: 6px;
     color: #fff;
     font-size: 0.9rem;
     left: 50%;
@@ -302,4 +380,36 @@ header button:hover {
 
 .toast.visible {
     opacity: 1;
+}
+
+/* Celular: o app ocupa a tela toda */
+@media (max-width: 480px) {
+    body {
+        padding: 0;
+    }
+
+    .mobile-container {
+        border-radius: 0;
+        box-shadow: none;
+        margin: 0;
+        min-height: 100vh;
+    }
+
+    .meal {
+        margin: 1rem;
+    }
+
+    .meal-header img {
+        height: 200px;
+    }
+
+    .popup-container {
+        padding: 0;
+    }
+
+    .popup {
+        border-radius: 0;
+        max-height: 100vh;
+        height: 100%;
+    }
 }
